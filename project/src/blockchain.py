@@ -1,6 +1,7 @@
 import hashlib
 import json
 from datetime import datetime
+from pathlib import Path
 
 
 class BlockchainLedger:
@@ -28,7 +29,10 @@ class BlockchainLedger:
 
     def add_block(self, client_id, round_num, update_state_dict):
         update_string = json.dumps(
-            {k: v.tolist() if hasattr(v, "tolist") else str(v) for k, v in update_state_dict.items()},
+            {
+                k: v.tolist() if hasattr(v, "tolist") else str(v)
+                for k, v in update_state_dict.items()
+            },
             sort_keys=True
         ).encode()
         update_hash = hashlib.sha256(update_string).hexdigest()
@@ -58,3 +62,8 @@ class BlockchainLedger:
                 return False
 
         return True
+
+    def save_chain(self, filepath="outputs/blockchain/ledger.json"):
+        Path("outputs/blockchain").mkdir(parents=True, exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(self.chain, f, indent=4)
