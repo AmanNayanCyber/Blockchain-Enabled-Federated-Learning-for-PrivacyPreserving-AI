@@ -8,16 +8,24 @@ class Server:
         self.global_model = copy.deepcopy(model).to(device)
         self.device = device
 
-    def fedavg(self, client_states):
+    def fedavg(self, client_states, client_sizes):
+        """
+        Weighted Federated Averaging.
+        client_states: list of state_dicts
+        client_sizes: list of number of samples per client
+        """
         global_state = self.global_model.state_dict()
+        total_samples = sum(client_sizes)
+
+        new_state = {}
 
         for key in global_state.keys():
-            global_state[key] = torch.mean(
-                torch.stack([client_state[key].float() for client_state in client_states]),
-                dim=0
-            )
+            weighted_sum = 0
+            for client_state, size in zip(client_states, client_sizes):
+                weighted_sum += client_state[key].float() * (size / total_samples)
+            new_state[key] = weighted_sum
 
-        self.global_model.load_state_dict(global_state)
+        self.global_model.load_state_dict(new_state)
         return self.global_model
 
     def evaluate(self, test_loader):
