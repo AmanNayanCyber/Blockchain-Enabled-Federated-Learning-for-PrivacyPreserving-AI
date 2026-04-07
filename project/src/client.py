@@ -39,4 +39,4 @@ class Client:
                 total_samples += images.size(0)
 
         avg_loss = total_loss / total_samples if total_samples > 0 else 0
-        return model.state_dict(), avg_loss
+        return model.state_dict(), avg_loss, len(self.dataset)
